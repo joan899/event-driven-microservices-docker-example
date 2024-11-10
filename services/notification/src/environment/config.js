@@ -14,5 +14,3 @@ config.startedMessage = `${config.name} is running`;
 
 module.exports = config;
 
-
-
