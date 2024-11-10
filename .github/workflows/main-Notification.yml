@@ -1,4 +1,4 @@
-name: CI/CD Workflow (services/)
+name: CI Workflow (services/notification)
 
 on:
   push:
