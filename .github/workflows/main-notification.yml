@@ -2,6 +2,8 @@ name: CI Workflow (services/notification)
 
 on:
   push:
+    paths: 
+      - 'services/events-management'
     branches:
       - develop
       - master
