@@ -3,14 +3,14 @@ name: CI Workflow (services/notification)
 on:
   push:
     paths: 
-      - 'services/events-management'
+      - 'services/notification/**/*'
     branches:
       - develop
       - master
 
   pull_request:
     paths: 
-      - 'services/notification'
+      - 'services/notification/**/*'
     branches:
       - develop
       - master
