@@ -30,4 +30,3 @@ email.sendArticleAddedEmail = async (message) => {
 };
 
 module.exports = email;
-
