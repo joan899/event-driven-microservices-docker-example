@@ -1,7 +1,14 @@
-version: '3'
-
 services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.7.4
+
   articles-management:
+    develop:
+      watch:
+        - action: rebuild
+          path: ./services/articles-management
+    restart: always
     container_name: articles-management
     build:
       context: ./services/articles-management
@@ -11,62 +18,24 @@ services:
     environment:
       - PORT=3000
       - MESSAGE_BUS=amqp://rabbitmq
-    links:
+    depends_on:
+      - mongofalcone
       - rabbitmq
-  
-  events-management:
-    container_name: events-management
-    build:
-      context: ./services/events-management
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3000"
-    environment:
-      - PORT=3000
-      - MESSAGE_BUS=amqp://rabbitmq
-    links:
-      - rabbitmq
-  
-  user-management:
-    container_name: user-management
-    build:
-      context: ./services/user-management
-      dockerfile: Dockerfile
-    ports:
-      - "3002:3000"
-    environment:
-      - PORT=3000
-      - MESSAGE_BUS=amqp://rabbitmq
-    links:
-      - rabbitmq
-  
-  authentication:
-    container_name: authentication
-    build:
-      context: ./services/authentication
-      dockerfile: Dockerfile
-    ports:
-      - "3003:3000"
-    environment:
-      - PORT=3000
-      - MESSAGE_BUS=amqp://rabbitmq
-    links:
-      - rabbitmq
-  
-  notification:
-    container_name: notification
-    build:
-      context: ./services/notification
-      dockerfile: Dockerfile
-    environment:
-      - MESSAGE_BUS=amqp://rabbitmq
-      - EMAIL_SERVICE=gmail
-      - EMAIL_ID=noreply.localnewsapplication@gmail.com
-      - EMAIL_PASSWORD=Testing0*
-      - ADMIN_EMAIL=localnewsapp340ct@gmail.com
-    links:
-      - rabbitmq
+    env_file: "app.env"
 
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:3.7.4
+  
+  mongofalcone:
+    image: mongo
+    restart: always
+    container_name: mongofalcone
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=falcon
+      - MONGO_INITDB_DATABASE=auth
+      - MONGO_INITDB_ROOT_PASSWORD=Falconerocks
+    volumes:
+      - ./mongo_data/:/data/db/
+
+volumes:
+  mongo_data:
