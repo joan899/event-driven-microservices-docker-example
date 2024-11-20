@@ -1,0 +1,73 @@
+name: CI/CD Workflow (services/articles-management)
+
+on:
+  push:
+    paths: 
+      - 'services/articles-management/**'
+
+    branches:
+      - develop
+      - master
+
+  pull_request:
+    paths: 
+      - 'services/articles-management/**'
+    branches:
+      - develop
+      - master
+
+jobs:
+  linter-and-tests:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 #checkoutv3 clone the code in the runner enviroment as a virtual machine
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Run npm install
+        run: cd services/articles-management && npm install
+
+      - name: Run npm lint
+        run: cd services/articles-management && npm run lint
+
+      - name: Run npm test
+        run: cd services/articles-management && npm run test
+
+  # Job for the master branch: Docker build and push
+  docker-build-and-push:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and tag Docker image
+        run: |
+          cd services/articles-management && VERSION=$(jq -r .version < package.json)
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/articles-management:v$VERSION .
+#the jq is a tool to extract the variable version from the package.json located in articles-management,
+# an then create an image named <USER_NAME>/articles-management:<version>
+      - name: Push Docker image
+        run: |
+          cd services/articles-management && VERSION=$(jq -r .version < package.json)
+          docker push ${{ secrets.DOCKER_USERNAME }}/articles-management:v$VERSION
+#the jq is a tool to extract the variable version from the package.json located in articles-management,
+# an then push the image named <USER_NAME>/articles-management:<version>
+      - name: Pull Docker image
+        run: |
+          cd services/articles-management && VERSION=$(jq -r .version < package.json)
+          docker pull ${{ secrets.DOCKER_USERNAME }}/articles-management:v$VERSION
