@@ -33,11 +33,10 @@ services:
     build:
       context: ./services/notification
       dockerfile: Dockerfile
-    ports:
-      - "3001:3000"
     environment:
-      - PORT=3000
       - MESSAGE_BUS=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
     env_file: "app.env"
 
   authentication:
@@ -48,10 +47,50 @@ services:
     restart: always
     container_name: authentication
     build:
-      context: ./services/articles-management
+      context: ./services/authentication
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - PORT=3000
+      - MESSAGE_BUS=amqp://rabbitmq
+    depends_on:
+      - mongofalcone
+      - rabbitmq
+    env_file: "app.env"
+
+  user-management:
+    develop:
+      watch:
+        - action: rebuild
+          path: ./services/user-management
+    restart: always
+    container_name: user-management
+    build:
+      context: ./services/user-management
       dockerfile: Dockerfile
     ports:
       - "3002:3000"
+    environment:
+      - PORT=3000
+      - MESSAGE_BUS=amqp://rabbitmq
+    depends_on:
+      - mongofalcone
+      - rabbitmq
+    env_file: "app.env"
+
+  events-management:
+    develop:
+      watch:
+        - action: rebuild
+          path: ./services/events-management
+    restart: always
+    container_name: events-management
+    build:
+      context: ./services/events-management
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
     environment:
       - PORT=3000
       - MESSAGE_BUS=amqp://rabbitmq
